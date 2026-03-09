@@ -1,0 +1,7 @@
+#Archvos generados por ANTLR
+src/ 
+#ANTLR y sus dependencias - Composer
+vendor/ 
+composer.lock
+# Test para debug
+test.php
