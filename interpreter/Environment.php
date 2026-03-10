@@ -4,10 +4,12 @@ class Environment
 {
     private array $variables = [];
     private ?Environment $parent;
+    public string $scopesName;
 
-    public function __construct(?Environment $parent = null)
+    public function __construct(?Environment $parent = null, string $scopeName = 'global')
     {
         $this->parent = $parent;
+        $this->scopesName = $scopeName;
     }
 
     // Declara una variable NUEVA 
@@ -16,7 +18,7 @@ class Environment
         $this->variables[$name] = $value;
     }
 
-    // Obtiene el valor buscando en la cadena de entornos
+    // Obtiene el valor buscando en la cadena de scopes
     public function get(string $name): mixed
     {
         if (array_key_exists($name, $this->variables)) {

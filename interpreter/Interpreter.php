@@ -7,13 +7,16 @@ require_once __DIR__ . '/../interpreter/stmt/VarHandler.php';
 require_once __DIR__ . '/../interpreter/stmt/IfHandler.php';
 require_once __DIR__ . '/../interpreter/stmt/ForHandler.php';
 require_once __DIR__ . '/../interpreter/stmt/FuncHandler.php';
+require_once __DIR__ . '/../interpreter/stmt/SwitchHandler.php';
+require_once __DIR__ . '/../interpreter/stmt/ArrayHandler.php';
 
 class Interpreter extends GolampiBaseVisitor
 {
-    use ExprHandler, PrintHandler, VarHandler, IfHandler, ForHandler, FuncHandler;
+    use ExprHandler, PrintHandler, VarHandler, IfHandler, ForHandler, FuncHandler, SwitchHandler, ArrayHandler;
 
     public string $console     = '';
     public array  $errors      = [];
+    public array  $symbols     = [];
     public bool   $breaking    = false;
     public bool   $continuing  = false;
     public bool   $returning   = false;
@@ -22,7 +25,7 @@ class Interpreter extends GolampiBaseVisitor
 
     public function __construct()
     {
-        $this->env = new Environment();
+        $this->env = new Environment(null, 'global');
     }
 
     public function visitP($ctx): mixed

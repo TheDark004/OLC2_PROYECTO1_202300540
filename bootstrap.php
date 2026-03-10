@@ -13,3 +13,5 @@ require_once __DIR__ . '/interpreter/stmt/VarHandler.php';
 require_once __DIR__ . '/interpreter/stmt/IfHandler.php';
 require_once __DIR__ . '/interpreter/stmt/ForHandler.php';
 require_once __DIR__ . '/interpreter/stmt/FuncHandler.php';
+require_once __DIR__ . '/interpreter/stmt/SwitchHandler.php';
+require_once __DIR__ . '/interpreter/stmt/ArrayHandler.php';

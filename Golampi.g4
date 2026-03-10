@@ -38,6 +38,12 @@ stmt
     | ID '/=' e ';'?                                # SlashAssignStmt
     | ID '++'  ';'?                                 # IncStmt
     | ID '--'  ';'?                                 # DecStmt
+    | 'var' ID arrayType1D type_ ';'?               # VarArray1D
+    | 'var' ID arrayType1D type_ '=' arrayLit1D ';'?# VarArray1DInit
+    | 'var' ID arrayType2D type_ ';'?               # VarArray2D
+    | 'var' ID arrayType2D type_ '=' arrayLit2D ';'?# VarArray2DInit
+    | ID '[' e ']' '=' e ';'?                       # ArrayAssign1D
+    | ID '[' e ']' '[' e ']' '=' e ';'?             # ArrayAssign2D
     | 'fmt.Println' '(' (e (',' e)*)? ')' ';'?      # PrintlnStmt
     | ID '(' (e (',' e)*)? ')' ';'?                 # FuncCallStmt
     | 'if' e block ('else' block)? ';'?             # IfStmt
@@ -45,6 +51,7 @@ stmt
     | 'for' e block ';'?                            # ForWhileStmt
     | 'for' '{' stmt* '}' ';'?                      # ForInfiniteStmt
     | 'for' varForInit ';' e ';' forPost block ';'? # ForClassicStmt
+    | 'switch' e? '{' switchCase* '}' ';'?          # SwitchStmt
     | 'return' e? ';'?                              # ReturnStmt
     | 'break' ';'?                                  # BreakStmt
     | 'continue' ';'?                               # ContinueStmt
@@ -60,6 +67,32 @@ forPost
     | ID '--'                                       # ForDecPost
     | ID '+=' e                                     # ForPlusAssignPost
     | ID '-=' e                                     # ForMinusAssignPost
+    ;
+
+arrayType1D
+    : '[' INT_LIT ']'
+    ;
+
+arrayType2D
+    : '[' INT_LIT ']' '[' INT_LIT ']'
+    ;
+
+arrayLit1D
+    : '[' INT_LIT ']' type_ '{' (e (',' e)*)? '}'
+    ;
+
+arrayLit2D
+    : '[' INT_LIT ']' '[' INT_LIT ']' type_
+        '{' (arrayRow (',' arrayRow)* ','?)? '}'
+    ;
+
+arrayRow
+    : '{' (e (',' e)*)? '}'
+    ;
+
+switchCase
+    : 'case' e ':' stmt*                            # CaseStmt
+    | 'default' ':' stmt*                           # DefaultStmt
     ;
 
 
@@ -90,7 +123,7 @@ e
     | 'fmt.Println' '(' (e (',' e)*)? ')'           # PrintlnExpr
     | 'len' '(' e ')'                               # LenExpr
     | 'now' '(' ')'                                 # NowExpr
-    | 'substr' '(' e ',' e ',' e ')'               # SubstrExpr
+    | 'substr' '(' e ',' e ',' e ')'                # SubstrExpr
     | 'typeOf' '(' e ')'                            # TypeOfExpr
     | ID '(' (e (',' e)*)? ')'                      # FuncCallExpr
     | BOOL_LIT                                      # BoolLit
@@ -100,6 +133,8 @@ e
     | RUNE_LIT                                      # RuneLit
     | 'nil'                                         # NilLit
     | ID                                            # IdExpr
+    | ID '[' e ']'                                  # ArrayAccess1D
+    | ID '[' e ']' '[' e ']'                        # ArrayAccess2D
     | '-' e                                         # NegExpr
     | '!' e                                         # NotExpr
     | e op=('*'|'/'|'%') e                          # MulExpr

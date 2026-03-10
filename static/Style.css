@@ -1,0 +1,188 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background: #1e1e2f;
+    color: #f0f0f0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Navbar ── */
+.navbar {
+    background: #16162a;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #3a3a5c;
+    flex-shrink: 0;
+}
+.navbar h1 { font-size: 15px; color: #ffcc00; margin-right: auto; }
+.navbar button, .navbar input[type=submit] {
+    background: #2e2e44;
+    color: #f0f0f0;
+    border: 1px solid #444;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+}
+.navbar button:hover { background: #3a3a5c; }
+.btn-run {
+    background: #ffcc00 !important;
+    color: #1e1e2f !important;
+    font-weight: bold !important;
+    border-color: #ffcc00 !important;
+}
+.btn-run:hover { background: #e6b800 !important; }
+#fileInput { display: none; }
+
+/* ── Layout ── */
+.workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Editor ── */
+.editor-section {
+    height: calc(100vh - 52px - 280px);
+    display: flex;
+    flex-direction: column;
+    border-bottom: 2px solid #3a3a5c;
+    flex-shrink: 0;
+}
+.section-title {
+    background: #16162a;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: #888;
+    border-bottom: 1px solid #3a3a5c;
+    flex-shrink: 0;
+}
+.editor-wrap {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5em;
+}
+.line-numbers {
+    background: #2a2a3d;
+    color: #555;
+    padding: 10px 8px;
+    text-align: right;
+    white-space: pre;
+    overflow: hidden;
+    user-select: none;
+    min-width: 40px;
+    line-height: 1.5em;
+    border-right: 1px solid #3a3a5c;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+textarea#code {
+    flex: 1;
+    background: #2e2e44;
+    color: #f0f0f0;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5em;
+    overflow: auto;
+    white-space: pre;
+    tab-size: 4;
+}
+
+/* ── Bottom ── */
+.bottom-section {
+    height: 280px;
+    display: flex;
+    flex-shrink: 0;
+}
+
+/* ── Consola ── */
+.console-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #3a3a5c;
+}
+.console-out {
+    flex: 1;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+    overflow: auto;
+    background: #1a1a2e;
+    color: #7ee787;
+}
+
+/* ── Reportes ── */
+.reports-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.tabs {
+    display: flex;
+    background: #16162a;
+    border-bottom: 1px solid #3a3a5c;
+    flex-shrink: 0;
+}
+.tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #888;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+}
+.tab:hover { color: #f0f0f0; }
+.tab.active { color: #ffcc00; border-bottom-color: #ffcc00; }
+.badge {
+    background: #c00;
+    color: white;
+    border-radius: 8px;
+    padding: 0 5px;
+    font-size: 10px;
+    margin-left: 4px;
+}
+.tab-panel { display: none; flex: 1; overflow-y: auto; padding: 10px; }
+.tab-panel.active { display: block; }
+.placeholder { color: #666; font-size: 13px; }
+.sin-errores { color: #3fb950; font-size: 13px; }
+
+/* ── Tablas ── */
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th {
+    background: #16162a;
+    color: #888;
+    padding: 5px 10px;
+    text-align: left;
+    border-bottom: 1px solid #3a3a5c;
+    position: sticky;
+    top: 0;
+}
+td { padding: 4px 10px; border-bottom: 1px solid #2a2a3d; color: #ccc; }
+tr:hover td { background: #2a2a3d; }
+
+/* ── Tags ── */
+.tag { padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: bold; }
+.tag-sint  { background: rgba(200,0,0,.2);       color: #f85149; }
+.tag-sem   { background: rgba(188,140,255,.2);   color: #bc8cff; }
+.tag-lex   { background: rgba(210,153,34,.2);    color: #d29922; }
+.tag-scope { background: rgba(56,139,253,.2);    color: #58a6ff; }

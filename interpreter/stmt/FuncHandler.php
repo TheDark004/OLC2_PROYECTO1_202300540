@@ -10,12 +10,23 @@ trait FuncHandler
     {
         foreach ($ctx->decl() as $decl) {
             $funcCtx = $decl->funcDecl();
-            if ($funcCtx instanceof Context\FuncDeclVoidContext ||
-                $funcCtx instanceof Context\FuncDeclReturnContext
-            ) {
-                $name = $funcCtx->ID()->getText();
-                $this->functions[$name] = $funcCtx;
-            }
+            if ($funcCtx === null) continue;
+
+            $name = $funcCtx->ID()->getText();
+            $line = $funcCtx->ID()->getSymbol()->getLine();
+            $col  = $funcCtx->ID()->getSymbol()->getCharPositionInLine();
+
+            $this->functions[$name] = $funcCtx;
+
+            // Registra funcion en símbolos
+            $this->symbols[] = [
+                'name'  => $name,
+                'type'  => 'función',
+                'scope' => 'global',
+                'value' => '—',
+                'line'  => $line,
+                'col'   => $col,
+            ];
         }
     }
 
@@ -73,7 +84,7 @@ trait FuncHandler
 
         $funcCtx   = $this->functions[$name];
         $previous  = $this->env;
-        $this->env = new Environment($previous);
+        $this->env = new Environment($previous,$name);
 
     
         $argIndex = 0;
