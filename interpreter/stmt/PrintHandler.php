@@ -9,20 +9,29 @@ trait PrintHandler
     {
         $parts = [];
         foreach ($ctx->e() as $expr) {
+            $erroresBefore = count($this->errors);
             $val    = $this->visit($expr);
+            $erroresAfter = count($this->errors);
+
+            if ($erroresAfter > $erroresBefore) {
+                continue;
+            }
+
             $parts[] = $this->valueToString($val);
         }
-        $this->console .= implode(' ', $parts) . "\n";
+        if (!empty($parts)) {
+            $this->console .= implode(' ', $parts) . "\n";
+        }
         return null;
     }
 
-    // fmt.Println usado como expresión (dentro de otra expr)
+    // fmt.Println usado como expresión 
     public function visitPrintlnExpr(PrintlnExprContext $ctx): mixed
     {
         return $this->visitPrintlnStmt($ctx);
     }
 
-    private function valueToString(mixed $val): string
+   private function valueToString(mixed $val): string
     {
         if ($val === null)  return 'nil';
         if (is_bool($val)) return $val ? 'true' : 'false';

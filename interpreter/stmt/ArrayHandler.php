@@ -101,17 +101,25 @@ trait ArrayHandler
         $value = $this->visit($ctx->e(1));
 
         try {
-            $arr = $this->env->get($name);
-            if (!is_array($arr)) {
+            $val = $this->env->get($name);
+            
+            // Si es puntero
+            $realName = $name;
+            if (is_array($val) && isset($val['__ref__'])) {
+                $realName = $val['name'];
+                $val = $this->env->get($realName);
+            }
+
+            if (!is_array($val)) {
                 $this->errors[] = ['type' => 'Semántico', 'desc' => "'$name' no es un arreglo", 'line' => 0, 'col' => 0];
                 return null;
             }
-            if ($index < 0 || $index >= count($arr)) {
+            if ($index < 0 || $index >= count($val)) {
                 $this->errors[] = ['type' => 'Semántico', 'desc' => "Índice $index fuera de rango en '$name'", 'line' => 0, 'col' => 0];
                 return null;
             }
-            $arr[$index] = $value;
-            $this->env->set($name, $arr);
+            $val[$index] = $value;
+            $this->env->set($realName, $val);
         } catch (Exception $ex) {
             $this->errors[] = ['type' => 'Semántico', 'desc' => $ex->getMessage(), 'line' => 0, 'col' => 0];
         }
@@ -147,16 +155,21 @@ trait ArrayHandler
         $index = $this->visit($ctx->e());
 
         try {
-            $arr = $this->env->get($name);
-            if (!is_array($arr)) {
+            $val = $this->env->get($name);
+
+            if (is_array($val) && isset($val['__ref__'])) {
+                $val = $this->env->get($val['name']);
+            }
+
+            if (!is_array($val)) {
                 $this->errors[] = ['type' => 'Semántico', 'desc' => "'$name' no es un arreglo", 'line' => 0, 'col' => 0];
                 return null;
             }
-            if ($index < 0 || $index >= count($arr)) {
+            if ($index < 0 || $index >= count($val)) {
                 $this->errors[] = ['type' => 'Semántico', 'desc' => "Índice $index fuera de rango en '$name'", 'line' => 0, 'col' => 0];
                 return null;
             }
-            return $arr[$index];
+            return $val[$index];
         } catch (Exception $ex) {
             $this->errors[] = ['type' => 'Semántico', 'desc' => $ex->getMessage(), 'line' => 0, 'col' => 0];
             return null;

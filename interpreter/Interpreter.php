@@ -48,7 +48,7 @@ class Interpreter extends GolampiBaseVisitor
     public function visitB($ctx): mixed
     {
         $previous  = $this->env;
-        $this->env = new Environment($previous);
+        $this->env = new Environment($previous, $previous->scopeName);
 
         foreach ($ctx->stmt() as $stmt) {
             $this->visit($stmt);

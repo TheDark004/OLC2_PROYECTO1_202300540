@@ -203,4 +203,76 @@ trait VarHandler
         if (is_string($value)) return 'string';
         return 'unknown';
     }
+
+    public function visitMultiShortVarDecl($ctx): mixed
+    {
+        $ids   = $ctx->ID();
+        $expr = $this->visit($ctx->e(0));
+
+        // Expandir retorno múltiple
+        $valores = [];
+        if (is_array($expr) && isset($expr['__multi__'])) {
+            $valores = $expr['values'];
+        } else {
+            $valores[] = $expr;
+        }
+
+        // Asignar a cada ID
+        foreach ($ids as $i => $id) {
+            $name  = $id->getText();
+            $value = $valores[$i] ?? null;
+            $type  = $this->inferType($value);
+            $line  = $id->getSymbol()->getLine();
+            $col   = $id->getSymbol()->getCharPositionInLine();
+
+            $this->env->declare($name, $value);
+            $this->addSymbol($name, $type, $value, $line, $col);
+        }
+
+        return null;
+    }
+
+    // *x = valor
+    public function visitDerefAssignStmt($ctx): mixed
+    {
+        $name  = $ctx->ID()->getText();
+        $value = $this->visit($ctx->e());
+
+        try {
+            $ref = $this->env->get($name);
+            if (is_array($ref) && isset($ref['__ref__'])) {
+                $this->env->set($ref['name'], $value);
+            } else {
+                $this->errors[] = ['type' => 'Semántico', 'desc' => "'$name' no es un puntero", 'line' => 0, 'col' => 0];
+            }
+        } catch (Exception $e) {
+            $this->errors[] = ['type' => 'Semántico', 'desc' => $e->getMessage(), 'line' => 0, 'col' => 0];
+        }
+        return null;
+    }
+
+    // const max int32 = 100
+    public function visitConstDeclStmt($ctx): mixed
+    {
+        $name  = $ctx->ID()->getText();
+        $value = $this->visit($ctx->e());
+        $type  = $ctx->type_()->getText();
+        $line  = $ctx->ID()->getSymbol()->getLine();
+        $col   = $ctx->ID()->getSymbol()->getCharPositionInLine();
+
+        if ($this->env->existsLocally($name)) {
+            $this->errors[] = [
+                'type' => 'Semántico',
+                'desc' => "Constante '$name' ya declarada en este ámbito",
+                'line' => $line,
+                'col'  => $col,
+            ];
+            return null;
+        }
+
+        $this->env->declare($name, $value);
+        $this->env->declareConst($name); // marcar como constante
+        $this->addSymbol($name, "const $type", $value, $line, $col);
+        return null;
+    }
 }

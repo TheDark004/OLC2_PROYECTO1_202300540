@@ -221,4 +221,87 @@ trait ExprHandler
         if ($left === true) return true;     // cortocircuito
         return $this->visit($ctx->e(1));
     }
+
+    // len(s) 
+    public function visitLenExpr($ctx): mixed
+    {
+        $val = $this->visit($ctx->e());
+
+        if (is_string($val)) {
+            return strlen($val);
+        }
+        if (is_array($val)) {
+            return count($val);
+        }
+
+        $this->errors[] = [
+            'type' => 'Semántico',
+            'desc' => 'len() solo acepta string o arreglo',
+            'line' => $ctx->getStart()->getLine(),
+            'col'  => $ctx->getStart()->getCharPositionInLine(),
+        ];
+        return null;
+    }
+
+    // now()
+    public function visitNowExpr($ctx): mixed
+    {
+        return date('Y-m-d H:i:s');
+    }
+
+    // substr(s, inicio, longitud)
+    public function visitSubstrExpr($ctx): mixed
+    {
+        $s      = $this->visit($ctx->e(0));
+        $inicio = $this->visit($ctx->e(1));
+        $largo  = $this->visit($ctx->e(2));
+
+        if (!is_string($s)) {
+            $this->errors[] = ['type' => 'Semántico', 'desc' => 'substr() requiere un string como primer argumento', 'line' => 0, 'col' => 0];
+            return null;
+        }
+        if ($inicio < 0 || $largo < 0 || $inicio + $largo > strlen($s)) {
+            $this->errors[] = ['type' => 'Semántico', 'desc' => "substr(): índices inválidos ($inicio, $largo) para string de longitud " . strlen($s), 'line' => 0, 'col' => 0];
+            return null;
+        }
+
+        return substr($s, $inicio, $largo);
+    }
+
+    // typeOf(x)
+    public function visitTypeOfExpr($ctx): mixed
+    {
+        $val = $this->visit($ctx->e());
+
+        if (is_bool($val))   return 'bool';
+        if (is_int($val))    return 'int32';
+        if (is_float($val))  return 'float32';
+        if (is_string($val)) return 'string';
+        if (is_array($val))  return 'arreglo';
+        return 'nil';
+    }
+
+    // &x  retorna la ref
+    public function visitRefExpr($ctx): mixed
+    {
+        $name = $ctx->ID()->getText();
+        return ['__ref__' => true, 'name' => $name];
+    }
+
+    // *x  obtiene el valor de lo que se apunta
+    public function visitDerefExpr($ctx): mixed
+    {
+        $name = $ctx->ID()->getText();
+        try {
+            $ref = $this->env->get($name);
+            if (is_array($ref) && isset($ref['__ref__'])) {
+                return $this->env->get($ref['name']);
+            }
+            // Si no es ref, trata el ID como puntero directamente
+            return $this->env->get($ref);
+        } catch (Exception $e) {
+            $this->errors[] = ['type' => 'Semántico', 'desc' => $e->getMessage(), 'line' => 0, 'col' => 0];
+            return null;
+        }
+    }
 }

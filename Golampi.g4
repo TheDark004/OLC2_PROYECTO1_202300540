@@ -7,17 +7,19 @@ program
 
 decl
     : funcDecl                                      # FunctionDeclaration
+    | 'const' ID type_ '=' e ';'?                   # ConstDeclGlobal
     ;
 
 
 //  FUNCIÓN
 funcDecl
-    : 'func' ID '(' (param (',' param)*)? ')' block           # FuncDeclVoid
-    | 'func' ID '(' (param (',' param)*)? ')' type_ block     # FuncDeclReturn
+    : 'func' ID '(' (param (',' param)*)? ')' block                             # FuncDeclVoid
+    | 'func' ID '(' (param (',' param)*)? ')' type_ block                       # FuncDeclReturn
+    | 'func' ID '(' (param (',' param)*)? ')' '(' type_ (',' type_)* ')' block  # FuncDeclMultiReturn
     ;
 
 param
-    : ID type_                                                  # Parametro
+    : ID type_    # Parametro
     ;
 
 //  BLOQUE
@@ -30,7 +32,9 @@ block
 stmt
     : 'var' ID type_ '=' e ';'?                     # VarDeclInit
     | 'var' ID type_ ';'?                           # VarDeclEmpty
+    | 'const' ID type_ '=' e ';'?                   # ConstDeclStmt
     | ID ':=' e ';'?                                # ShortVarDecl
+    | ID (',' ID)+ ':=' e (',' e)* ';'?             # MultiShortVarDecl
     | ID '=' e ';'?                                 # AssignStmt
     | ID '+=' e ';'?                                # PlusAssignStmt
     | ID '-=' e ';'?                                # MinusAssignStmt
@@ -38,6 +42,7 @@ stmt
     | ID '/=' e ';'?                                # SlashAssignStmt
     | ID '++'  ';'?                                 # IncStmt
     | ID '--'  ';'?                                 # DecStmt
+    | '*' ID '=' e ';'?                             # DerefAssignStmt
     | 'var' ID arrayType1D type_ ';'?               # VarArray1D
     | 'var' ID arrayType1D type_ '=' arrayLit1D ';'?# VarArray1DInit
     | 'var' ID arrayType2D type_ ';'?               # VarArray2D
@@ -52,7 +57,7 @@ stmt
     | 'for' '{' stmt* '}' ';'?                      # ForInfiniteStmt
     | 'for' varForInit ';' e ';' forPost block ';'? # ForClassicStmt
     | 'switch' e? '{' switchCase* '}' ';'?          # SwitchStmt
-    | 'return' e? ';'?                              # ReturnStmt
+    | 'return' (e (',' e)* ';'*)?                      # ReturnStmt
     | 'break' ';'?                                  # BreakStmt
     | 'continue' ';'?                               # ContinueStmt
     ;
@@ -104,6 +109,8 @@ type_
     | 'bool'                                        # TypeBool
     | 'rune'                                        # TypeRune
     | 'string'                                      # TypeString
+    | '*' type_                                     # TypePointer
+    | '[' INT_LIT ']' type_                         # TypeArray
     ;
 
 //  EXPRESIONES
@@ -137,6 +144,8 @@ e
     | ID '[' e ']' '[' e ']'                        # ArrayAccess2D
     | '-' e                                         # NegExpr
     | '!' e                                         # NotExpr
+    | '&' ID                                        # RefExpr
+    | '*' ID                                        # DerefExpr
     | e op=('*'|'/'|'%') e                          # MulExpr
     | e op=('+'|'-') e                              # AddExpr
     | e op=('<'|'>'|'<='|'>=') e                    # RelExpr

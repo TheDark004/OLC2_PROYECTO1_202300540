@@ -126,7 +126,11 @@ trait ForHandler
         // i := 0
         $name  = $ctx->ID()->getText();
         $value = $this->visit($ctx->e());
+        $type  = $this->inferType($value);
+        $line  = $ctx->ID()->getSymbol()->getLine();
+        $col   = $ctx->ID()->getSymbol()->getCharPositionInLine();
         $this->env->declare($name, $value);
+        $this->addSymbol($name,$type,$value,$line,$col);
         return null;
     }
 

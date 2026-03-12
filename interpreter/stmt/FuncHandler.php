@@ -9,6 +9,19 @@ trait FuncHandler
     public function hoistFunctions($ctx): void
     {
         foreach ($ctx->decl() as $decl) {
+
+            if ($decl instanceof Context\ConstDeclGlobalContext) {
+                $name  = $decl->ID()->getText();
+                $value = $this->visit($decl->e());
+                $type  = $decl->type_()->getText();
+                $line  = $decl->ID()->getSymbol()->getLine();
+                $col   = $decl->ID()->getSymbol()->getCharPositionInLine();
+                $this->env->declare($name, $value);
+                $this->env->declareConst($name);
+                $this->addSymbol($name, "const $type", $value, $line, $col);
+                continue;
+            }
+
             $funcCtx = $decl->funcDecl();
             if ($funcCtx === null) continue;
 
@@ -40,6 +53,11 @@ trait FuncHandler
         return null;
     }
 
+    public function visitFuncDeclMultiReturn($ctx): mixed
+    {
+        return null;
+    }
+
     public function visitFuncCallStmt($ctx): mixed
     {
         $name = $ctx->ID()->getText();
@@ -62,17 +80,37 @@ trait FuncHandler
 
     public function visitReturnStmt($ctx): mixed
     {
-        if ($ctx->e() !== null) {
-            $this->returnValue = $this->visit($ctx->e());
-        } else {
+        $exprs = $ctx->e();
+
+        if (count($exprs) === 0) {
             $this->returnValue = null;
+        } elseif (count($exprs) === 1) {
+            $this->returnValue = $this->visit($exprs[0]);
+        } else {
+            // Retorno múltiple se guarda como array con clave especial
+            $valores = [];
+            foreach ($exprs as $expr) {
+                $valores[] = $this->visit($expr);
+            }
+            $this->returnValue = ['__multi__' => true, 'values' => $valores];
         }
+
         $this->returning = true;
         return null;
     }
 
     public function callFunction(string $name, array $args): mixed
     {
+        // validacion para que main no pueda ser llamada asi misma 
+        if ($name === 'main' && $this->env->scopeName !== 'global') {
+            $this->errors[] = [
+                'type' => 'Semántico',
+                'desc' => "La función 'main' no puede ser invocada explícitamente",
+                'line' => 0, 'col' => 0,
+            ];
+            return null;
+        }
+
         if (!isset($this->functions[$name])) {
             $this->errors[] = [
                 'type' => 'Semántico',
@@ -92,7 +130,13 @@ trait FuncHandler
             if ($child instanceof Context\ParametroContext) {
                 $paramName  = $child->ID()->getText();
                 $paramValue = $args[$argIndex] ?? null;
+                $paramType  = $child->type_()->getText();
+                $paramLine  = $child->ID()->getSymbol()->getLine();
+                $paramCol   = $child->ID()->getSymbol()->getCharPositionInLine();
+
+
                 $this->env->declare($paramName, $paramValue);
+                $this->addSymbol($paramName,$paramType,$paramValue,$paramLine,$paramCol);
                 $argIndex++;
             }
         }

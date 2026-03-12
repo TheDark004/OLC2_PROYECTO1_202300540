@@ -72,19 +72,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Golampi Interpreter</title>
+    <title>Golampi-202300540</title>
     <link rel="stylesheet" href="/static/Style.css">
 </head>
 <body>
 
 <!-- Navbar -->
 <div class="navbar">
-    <h1>&#11042; Golampi Interpreter</h1>
+    <h1>René Gutiérrez &#11042; Golampi Interpreter &#11042; 202300540</h1>
     <button type="button" onclick="nuevoArchivo()">Nuevo</button>
     <button type="button" onclick="document.getElementById('fileInput').click()">Cargar</button>
     <input type="file" id="fileInput" accept=".go,.golampi,.txt" onchange="cargarArchivo(event)">
     <button type="button" onclick="guardarArchivo()">Guardar</button>
-    <input type="submit" form="mainForm" class="btn-run" value="&#9654; Ejecutar">
+    <input type="submit" form="mainForm" class="btn-run" value="&#9654; Run">
     <button type="button" onclick="limpiarConsola()">Limpiar consola</button>
 </div>
 
@@ -111,7 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <!-- Consola -->
         <div class="console-wrap">
-            <div class="section-title">Consola de salida</div>
+            <div class="section-title">Salida</div>
             <pre class="console-out"><?php echo htmlspecialchars($output); ?></pre>
         </div>
 
