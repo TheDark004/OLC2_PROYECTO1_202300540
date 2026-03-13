@@ -13,13 +13,17 @@ decl
 
 //  FUNCIÓN
 funcDecl
-    : 'func' ID '(' (param (',' param)*)? ')' block                             # FuncDeclVoid
-    | 'func' ID '(' (param (',' param)*)? ')' type_ block                       # FuncDeclReturn
-    | 'func' ID '(' (param (',' param)*)? ')' '(' type_ (',' type_)* ')' block  # FuncDeclMultiReturn
+    : 'func' ID '(' (param (',' param)*)? ')' block                                            # FuncDeclVoid
+    | 'func' ID '(' (param (',' param)*)? ')' returnType block                                 # FuncDeclReturn
+    | 'func' ID '(' (param (',' param)*)? ')' '(' returnType (',' returnType)* ')' block       # FuncDeclMultiReturn
     ;
 
 param
     : ID type_    # Parametro
+    | ID arrayType1D type_              # ParametroArray1D
+    | ID arrayType2D type_              # ParametroArray2D
+    | ID '*' arrayType1D type_          # ParametroPointerArray1D
+    | ID '*' arrayType2D type_          # ParametroPointerArray2D
     ;
 
 //  BLOQUE
@@ -30,10 +34,17 @@ block
 
 //  SENTENCIAS
 stmt
-    : 'var' ID type_ '=' e ';'?                     # VarDeclInit
+    : 'var' ID arrayType1D type_ '=' arrayLit1D ';'?# VarArray1DInit
+    | 'var' ID arrayType1D type_ ';'?               # VarArray1D
+    | 'var' ID arrayType2D type_ ';'?               # VarArray2D
+    | 'var' ID arrayType2D type_ '=' arrayLit2D ';'?# VarArray2DInit
+    | 'var' ID type_ '=' e ';'?                     # VarDeclInit
     | 'var' ID type_ ';'?                           # VarDeclEmpty
+    | 'var' ID (',' ID)+ type_ '=' e (',' e)* ';'?  # VarDeclMulti
     | 'const' ID type_ '=' e ';'?                   # ConstDeclStmt
     | ID ':=' e ';'?                                # ShortVarDecl
+    | ID ':=' arrayLit1D ';'?                       # ShortVarArray1D
+    | ID ':=' arrayLit2D ';'?                       # ShortVarArray2D
     | ID (',' ID)+ ':=' e (',' e)* ';'?             # MultiShortVarDecl
     | ID '=' e ';'?                                 # AssignStmt
     | ID '+=' e ';'?                                # PlusAssignStmt
@@ -43,10 +54,6 @@ stmt
     | ID '++'  ';'?                                 # IncStmt
     | ID '--'  ';'?                                 # DecStmt
     | '*' ID '=' e ';'?                             # DerefAssignStmt
-    | 'var' ID arrayType1D type_ ';'?               # VarArray1D
-    | 'var' ID arrayType1D type_ '=' arrayLit1D ';'?# VarArray1DInit
-    | 'var' ID arrayType2D type_ ';'?               # VarArray2D
-    | 'var' ID arrayType2D type_ '=' arrayLit2D ';'?# VarArray2DInit
     | ID '[' e ']' '=' e ';'?                       # ArrayAssign1D
     | ID '[' e ']' '[' e ']' '=' e ';'?             # ArrayAssign2D
     | 'fmt.Println' '(' (e (',' e)*)? ')' ';'?      # PrintlnStmt
@@ -57,7 +64,7 @@ stmt
     | 'for' '{' stmt* '}' ';'?                      # ForInfiniteStmt
     | 'for' varForInit ';' e ';' forPost block ';'? # ForClassicStmt
     | 'switch' e? '{' switchCase* '}' ';'?          # SwitchStmt
-    | 'return' (e (',' e)* ';'*)?                      # ReturnStmt
+    | 'return' (e (',' e)* ';'*)?                   # ReturnStmt
     | 'break' ';'?                                  # BreakStmt
     | 'continue' ';'?                               # ContinueStmt
     ;
@@ -100,6 +107,11 @@ switchCase
     | 'default' ':' stmt*                           # DefaultStmt
     ;
 
+returnType
+    : type_                 # ReturnTypeSimple
+    | arrayType1D type_     # ReturnTypeArray1D
+    | arrayType2D type_     # ReturnTypeArray2D
+    ;
 
 //  TIPOS
 type_
@@ -110,7 +122,6 @@ type_
     | 'rune'                                        # TypeRune
     | 'string'                                      # TypeString
     | '*' type_                                     # TypePointer
-    | '[' INT_LIT ']' type_                         # TypeArray
     ;
 
 //  EXPRESIONES

@@ -33,8 +33,16 @@ trait PrintHandler
 
    private function valueToString(mixed $val): string
     {
-        if ($val === null)  return 'nil';
+        if ($val === null)  return '<nil>';
         if (is_bool($val)) return $val ? 'true' : 'false';
+        if (is_string($val)) {
+            
+            return str_replace(
+                ['\\n', '\\t', '\\r', '\\"', '\\\\'],
+                ["\n",  "\t",  "\r",  '"',   "\\"],
+                $val
+            );
+        }
         return (string) $val;
     }
 }

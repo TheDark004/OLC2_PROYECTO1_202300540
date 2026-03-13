@@ -127,7 +127,10 @@ trait FuncHandler
     
         $argIndex = 0;
         foreach ($funcCtx->children as $child) {
-            if ($child instanceof Context\ParametroContext) {
+            if ($child instanceof Context\ParametroContext ||  $child instanceof Context\ParametroArray1DContext ||
+                $child instanceof Context\ParametroArray2DContext || $child instanceof Context\ParametroPointerArray1DContext ||
+                $child instanceof Context\ParametroPointerArray2DContext) {
+
                 $paramName  = $child->ID()->getText();
                 $paramValue = $args[$argIndex] ?? null;
                 $paramType  = $child->type_()->getText();
@@ -136,7 +139,7 @@ trait FuncHandler
 
 
                 $this->env->declare($paramName, $paramValue);
-                $this->addSymbol($paramName,$paramType,$paramValue,$paramLine,$paramCol);
+                $this->addSymbol($paramName, 'arreglo', $paramValue, $paramLine, $paramCol);
                 $argIndex++;
             }
         }

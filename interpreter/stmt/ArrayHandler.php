@@ -44,6 +44,7 @@ trait ArrayHandler
     // var m [2][3]int
     public function visitVarArray2D($ctx): mixed
     {
+        echo "VISITANDO VarArray2D\n";
         $name = $ctx->ID()->getText();
         $rows = (int) $ctx->arrayType2D()->INT_LIT(0)->getText();
         $cols = (int) $ctx->arrayType2D()->INT_LIT(1)->getText();
@@ -207,5 +208,61 @@ trait ArrayHandler
             'rune'         => 0,
             default        => null,
         };
+    }
+
+    // ARREGLO:= [n]type{...,...,}
+    public function visitShortVarArray1D($ctx): mixed
+    {
+        $name = $ctx->ID()->getText();
+        $line = $ctx->ID()->getSymbol()->getLine();
+        $col  = $ctx->ID()->getSymbol()->getCharPositionInLine();
+
+        $size = (int) $ctx->arrayLit1D()->INT_LIT()->getText();
+        $type = $ctx->arrayLit1D()->type_()->getText();
+
+        $arr = array_fill(0, $size, $this->arrayDefault($type));
+        $i = 0;
+        foreach ($ctx->arrayLit1D()->e() as $expr) {
+            if ($i >= $size) break;
+            $arr[$i] = $this->visit($expr);
+            $i++;
+        }
+
+        $this->env->declare($name, $arr);
+        $this->addSymbol($name, "[$size]$type", '—', $line, $col);
+        return null;
+    }
+
+    // Arreglo corto para 2D
+    public function visitShortVarArray2D($ctx): mixed
+    {
+        $name = $ctx->ID()->getText();
+        $line = $ctx->ID()->getSymbol()->getLine();
+        $col  = $ctx->ID()->getSymbol()->getCharPositionInLine();
+
+        $rows = (int) $ctx->arrayLit2D()->INT_LIT(0)->getText();
+        $cols = (int) $ctx->arrayLit2D()->INT_LIT(1)->getText();
+        $type = $ctx->arrayLit2D()->type_()->getText();
+
+        $arr = [];
+        for ($i = 0; $i < $rows; $i++) {
+            $arr[$i] = array_fill(0, $cols, $this->arrayDefault($type));
+        }
+
+        $i = 0;
+        foreach ($ctx->arrayLit2D()->arrayRow() as $fila) {
+            if ($i >= $rows) break;
+            $j = 0;
+            foreach ($fila->e() as $expr) {
+                if ($j >= $cols) break;
+                $arr[$i][$j] = $this->visit($expr);
+                $j++;
+            }
+            $i++;
+        }
+
+        $this->env->declare($name, $arr);
+        $this->addSymbol($name, "[$rows][$cols]$type", '—', $line, $col);
+        return null;
     }
 }

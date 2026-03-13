@@ -46,7 +46,8 @@ trait ExprHandler
     {
         // Quitar las comillas simples: 'a' -> a
         $raw = $ctx->RUNE_LIT()->getText();
-        return substr($raw, 1, strlen($raw) - 2);
+        $char = substr($raw, 1, strlen($raw) - 2);
+        return ord($char);
     }
 
     public function visitNilLit(NilLitContext $ctx): mixed
@@ -158,7 +159,7 @@ trait ExprHandler
 
         return match($op) {
             '*' => $left * $right,
-            '/' => $right == 0 ? $this->divisionByZero() : $left / $right,
+            '/' => $right == 0 ? $this->divisionByZero() : (is_int($left) && is_int($right) ? intdiv($left, $right) : $left / $right),
             '%' => $right == 0 ? $this->divisionByZero() : intval($left) % intval($right),
         };
     }

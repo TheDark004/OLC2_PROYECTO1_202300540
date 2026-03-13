@@ -38,7 +38,7 @@ trait VarHandler
             'int32', 'int' => 0,
             'float32'      => 0.0,
             'bool'         => false,
-            'rune'         => "\u{0000}",
+            'rune'         => "0",
             'string'       => '',
             default        => null,
         };
@@ -70,6 +70,36 @@ trait VarHandler
         $this->env->declare($name, $value);
         $this->addSymbol($name, $type, $value, $line, $col);
         return null;
+    }
+
+    // var mult1, mult2 int32 = 10, 20
+    public function visitVarDeclMulti($ctx): mixed
+    {
+        $ids    = $ctx->ID();
+        $exprs  = $ctx->e();
+        $type   = $ctx->type_()->getText();
+
+        foreach ($ids as $i => $id) {
+            $name  = $id->getText();
+            $value = isset($exprs[$i]) ? $this->visit($exprs[$i]) : $this->defaultValue($type);
+            $line  = $id->getSymbol()->getLine();
+            $col   = $id->getSymbol()->getCharPositionInLine();
+
+            $this->env->declare($name, $value);
+            $this->addSymbol($name, $type, $value, $line, $col);
+        }
+        return null;
+    }
+
+    private function defaultValue(string $type): mixed
+    {
+        return match($type) {
+            'int32', 'int', 'rune' => 0,
+            'float32'              => 0.0,
+            'bool'                 => false,
+            'string'               => '',
+            default                => null,
+        };
     }
 
     //  x = 20
@@ -207,17 +237,24 @@ trait VarHandler
     public function visitMultiShortVarDecl($ctx): mixed
     {
         $ids   = $ctx->ID();
-        $expr = $this->visit($ctx->e(0));
+        $exprs = $ctx->e();
 
         // Expandir retorno múltiple
         $valores = [];
-        if (is_array($expr) && isset($expr['__multi__'])) {
-            $valores = $expr['values'];
+
+        if (count($exprs) === 1) {
+            $expr = $this->visit($exprs[0]);
+            if (is_array($expr) && isset($expr['__multi__'])) {
+                $valores = $expr['values'];
+            } else {
+                $valores[] = $expr;
+            }
         } else {
-            $valores[] = $expr;
+            foreach ($exprs as $expr) {
+                $valores[] = $this->visit($expr);
+            }
         }
 
-        // Asignar a cada ID
         foreach ($ids as $i => $id) {
             $name  = $id->getText();
             $value = $valores[$i] ?? null;
