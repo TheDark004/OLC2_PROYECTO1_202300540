@@ -5,6 +5,3 @@ vendor/
 composer.lock
 # Test para debug
 test.php
-
-Docu/
-img/
